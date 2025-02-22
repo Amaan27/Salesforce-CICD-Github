@@ -3,7 +3,7 @@ name: Salesforce CI/CD
 on:
   push:
     branches:
-      - QA
+      - QA  # Run the workflow when pushing to QA branch
 
 jobs:
   build:
@@ -15,21 +15,28 @@ jobs:
 
       - name: Install Salesforce CLI
         run: |
-          npm install --global sfdx-cli
-          sfdx --version
+          wget https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+          mkdir ~/sfdx
+          tar xJf sfdx-linux-amd64.tar.xz -C ~/sfdx --strip-components 1
+          ~/sfdx/install
 
       - name: Authenticate Salesforce
         run: |
           echo "${{ secrets.SF_SERVER_KEY }}" > server.key
           sfdx auth jwt grant --client-id ${{ secrets.SF_CONSUMER_KEY }} \
             --jwt-key-file server.key --username ${{ secrets.SF_USERNAME }} --set-default-dev-hub
+      
+      - name: Check Salesforce Org
+        run: sfdx force:org:list  # ✅ Added this step to verify authentication
 
-      - name: Check if SFDX Project Exists
-        run: ls -la && cat sfdx-project.json
-        
+      - name: Set Default Username  # ✅ New step to ensure the org is set
+        run: sfdx config:set target-org=${{ secrets.SF_USERNAME }}
+
       - name: Deploy to Salesforce
-        run: sfdx force:source:deploy -p force-app -u ${{ secrets.SF_USERNAME }} --wait 10
+        run: |
+          cd $GITHUB_WORKSPACE  # Ensure it runs inside the project directory
+          ls -la && cat sfdx-project.json  # Debugging step to verify SFDX project
+          sfdx force:source:deploy -p force-app -u ${{ secrets.SF_USERNAME }} --wait 10
 
       - name: Run Apex Tests
-        run: |
-          sfdx force:apex:test:run --codecoverage --resultformat human --wait 10
+        run: sfdx force:apex:test:run --codecoverage --resultformat human --wait 10
