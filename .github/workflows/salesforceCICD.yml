@@ -26,6 +26,7 @@ jobs:
 
       - name: Deploy to Salesforce
         run: |
+          cd $GITHUB_WORKSPACE
           sfdx force:source:deploy -p force-app -u ${{ secrets.SF_USERNAME }} --wait 10
 
       - name: Run Apex Tests
