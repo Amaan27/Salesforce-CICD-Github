@@ -24,10 +24,11 @@ jobs:
           sfdx auth jwt grant --client-id ${{ secrets.SF_CONSUMER_KEY }} \
             --jwt-key-file server.key --username ${{ secrets.SF_USERNAME }} --set-default-dev-hub
 
+      - name: Check if SFDX Project Exists
+        run: ls -la && cat sfdx-project.json
+        
       - name: Deploy to Salesforce
-        run: |
-          cd $GITHUB_WORKSPACE
-          sfdx force:source:deploy -p force-app -u ${{ secrets.SF_USERNAME }} --wait 10
+        run: sfdx force:source:deploy -p force-app -u ${{ secrets.SF_USERNAME }} --wait 10
 
       - name: Run Apex Tests
         run: |
