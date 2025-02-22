@@ -1,0 +1,35 @@
+name: Salesforce CI/CD
+
+on:
+  push:
+    branches:
+      - QA
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Salesforce CLI
+        run: |
+          wget https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+          mkdir ~/sfdx
+          tar xJf sfdx-linux-amd64.tar.xz -C ~/sfdx --strip-components 1
+          ~/sfdx/install
+
+      - name: Authenticate Salesforce
+        run: |
+          echo "${{ secrets.SF_SERVER_KEY }}" > server.key
+          sfdx auth jwt grant --client-id ${{ secrets.SF_CONSUMER_KEY }} \
+            --jwt-key-file server.key --username ${{ secrets.SF_USERNAME }} --set-default-dev-hub
+
+      - name: Deploy to Salesforce
+        run: |
+          sfdx force:source:deploy -p force-app -u ${{ secrets.SF_USERNAME }} --wait 10
+
+      - name: Run Apex Tests
+        run: |
+          sfdx force:apex:test:run --codecoverage --resultformat human --wait 10
