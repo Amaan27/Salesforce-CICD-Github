@@ -6,7 +6,6 @@ on:
       - QA
 #
 #
-#
 env:
   SF_CLIENT_ID: ${{ secrets.SF_CONSUMER_KEY }}
   SF_CLIENT_SECRET: ${{ secrets.SF_CONSUMER_SECRET_KEY }}
