@@ -13,6 +13,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: List Root Files
+        run: ls -la
+
       - name: Install Salesforce CLI
         run: |
           npm install --global sfdx-cli
@@ -23,7 +26,11 @@ jobs:
           echo "${{ secrets.SF_SERVER_KEY }}" > server.key
           sfdx auth jwt grant --client-id "${{ secrets.SF_CONSUMER_KEY }}" \
             --jwt-key-file server.key --username "${{ secrets.SF_USERNAME }}"
-      
+
+      - name: Change Directory to MyProject
+        run: cd MyProject && ls -la
+
       - name: Deploy to Salesforce
         run: |
+          cd MyProject
           sfdx force:source:deploy -p force-app -w 10
