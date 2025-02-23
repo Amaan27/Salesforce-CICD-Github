@@ -22,10 +22,12 @@ jobs:
         run: |
           echo "${{ secrets.SF_SERVER_KEY }}" > server.key
           sfdx auth jwt grant --client-id ${{ secrets.SF_CONSUMER_KEY }} \
-            --jwt-key-file server.key --username ${{ secrets.SF_USERNAME }} --set-default-dev-hub
+          --jwt-key-file server.key --username ${{ secrets.SF_USERNAME }} --set-default-dev-hub --set-default
+          
+          sfdx force:org:list
       
-      - name: Check Salesforce Org
-        run: sfdx force:org:list  # ✅ Added this step to verify authentication
+  #    - name: Check Salesforce Org
+   #     run: sfdx force:org:list  # ✅ Added this step to verify authentication
 
       - name: Set Default Username  # ✅ New step to ensure the org is set
         run: sfdx config:set target-org=${{ secrets.SF_USERNAME }}
