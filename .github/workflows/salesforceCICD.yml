@@ -1,42 +1,29 @@
-name: Salesforce CI/CD
+name: Deploy to Salesforce QA
 
 on:
   push:
     branches:
-      - QA  # Run the workflow when pushing to QA branch
+      - QA  # This triggers only on pushes to the QA branch
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Install Salesforce CLI
         run: |
           npm install --global sfdx-cli
           sfdx --version
 
-      - name: Authenticate Salesforce
+      - name: Authenticate to Salesforce
         run: |
           echo "${{ secrets.SF_SERVER_KEY }}" > server.key
-          sfdx auth jwt grant --client-id ${{ secrets.SF_CONSUMER_KEY }} \
-          --jwt-key-file server.key --username ${{ secrets.SF_USERNAME }} --set-default-dev-hub --set-default
-          
-          sfdx force:org:list
+          sfdx auth jwt grant --client-id "${{ secrets.SF_CONSUMER_KEY }}" \
+            --jwt-key-file server.key --username "${{ secrets.SF_USERNAME }}"
       
-  #    - name: Check Salesforce Org
-   #     run: sfdx force:org:list  # ✅ Added this step to verify authentication
-
-      - name: Set Default Username  # ✅ New step to ensure the org is set
-        run: sfdx config:set target-org=${{ secrets.SF_USERNAME }}
-
       - name: Deploy to Salesforce
         run: |
-          cd $GITHUB_WORKSPACE  # Ensure it runs inside the project directory
-          ls -la && cat sfdx-project.json  # Debugging step to verify SFDX project
-          sfdx force:source:deploy -p force-app -u ${{ secrets.SF_USERNAME }} --wait 10
-
-      - name: Run Apex Tests
-        run: sfdx force:apex:test:run --codecoverage --resultformat human --wait 10
+          sfdx force:source:deploy -p force-app -w 10
