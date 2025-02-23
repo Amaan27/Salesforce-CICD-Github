@@ -21,15 +21,13 @@ jobs:
           npm install --global sfdx-cli
           sfdx --version
 
-      - name: Authenticate to Salesforce
+      - name: Authenticate to Dev Hub
         run: |
           echo "${{ secrets.SF_SERVER_KEY }}" > server.key
           sfdx auth jwt grant --client-id "${{ secrets.SF_CONSUMER_KEY }}" \
-          --jwt-key-file server.key --username "${{ secrets.SF_USERNAME }}" \
-          --setdefaultusername
+            --jwt-key-file server.key --username "${{ secrets.SF_USERNAME }}" \
+            --setdefaultdevhubusername
 
-  #    - name: List Authenticated Orgs
-  #      run: sfdx force:org:list
       - name: Check Authenticated Orgs
         run: sfdx force:org:list
 
