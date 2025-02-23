@@ -28,8 +28,8 @@ jobs:
             --jwt-key-file server.key --username "${{ secrets.SF_USERNAME }}" \
             --setdefaultdevhubusername
 
-      - name: Check Authenticated Orgs
-        run: sfdx force:org:list
+#      - name: Check Authenticated Orgs
+ #       run: sfdx force:org:list
 
       - name: Create Scratch Org
         run: |
