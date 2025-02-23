@@ -28,9 +28,11 @@ jobs:
           --jwt-key-file server.key --username "${{ secrets.SF_USERNAME }}" \
           --setdefaultusername
 
-      - name: List Authenticated Orgs
+  #    - name: List Authenticated Orgs
+  #      run: sfdx force:org:list
+      - name: Check Authenticated Orgs
         run: sfdx force:org:list
 
       - name: Deploy to Salesforce
         working-directory: MyProject
-        run: sfdx force:source:deploy -p force-app -w 10
+        run: sfdx force:source:deploy -p force-app -u "${{ secrets.SF_USERNAME }}" -w 10
