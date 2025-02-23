@@ -6,10 +6,11 @@ on:
       - QA
 
 env:
-  SFDX_CLIENT_ID: ${{ secrets.SF_CONSUMER_KEY }}
-  SFDX_CLIENT_SECRET: ${{ secrets.SF_CONSUMER_SECRET_KEY }}
-  SFDX_USERNAME: ${{ secrets.SF_USERNAME }}
-  SFDX_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
+  SF_CLIENT_ID: ${{ secrets.SF_CONSUMER_KEY }}
+  SF_CLIENT_SECRET: ${{ secrets.SF_CONSUMER_SECRET_KEY }}
+  SF_USERNAME: ${{ secrets.SF_USERNAME }}
+  SF_ORG_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
+  SFDX_PRIVATE_KEY: ${{ secrets.SF_SERVER_KEY }}
 
 jobs:
   deploy:
@@ -24,16 +25,18 @@ jobs:
           tar xJf sfdx-linux-x64.tar.xz -C ~/sfdx --strip-components 1
           echo "$HOME/sfdx/bin" >> $GITHUB_PATH
           
+      - name: Create JWT Key File
+        run: echo "${{ secrets.SFDX_PRIVATE_KEY }}" > server.key
+          
       - name: Install SFDX Git Delta Plugin
         run: echo y | sfdx plugins:install sfdx-git-delta
         
       - name: Authorize Salesforce Org
         run: |
-          echo "${SFDX_CLIENT_ID}" > client_id.txt
-          sfdx auth:jwt:grant --clientid $(cat client_id.txt) --jwtkeyfile server.key --username ${SFDX_USERNAME} --instanceurl ${SFDX_INSTANCE_URL} -a targetorg
+          sfdx auth:jwt:grant --client-id ${SF_CLIENT_ID} --jwt-key-file server.key --username ${SF_USERNAME} --instance-url ${SF_ORG_INSTANCE_URL} -a targetorg
           
       - name: Deploy to Org
-        run: sfdx force:source:deploy -p force-app/main/default -u targetorg --json
+        run: sfdx force:source:deploy -p MyProject/force-app/main/default -u targetorg --json
         
       - name: Handle Deployment Error
         if: failure()
