@@ -3,7 +3,7 @@ name: Deploy to Salesforce QA
 on:
   push:
     branches:
-      - QA  # Runs only on pushes to QA branch
+      - QA  # This triggers only on pushes to the QA branch
 
 jobs:
   deploy:
@@ -13,31 +13,26 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: List Root Files
+        run: ls -la
+
       - name: Install Salesforce CLI
         run: |
           npm install --global sfdx-cli
           sfdx --version
 
-      - name: Authenticate to Salesforce (Dev Hub)
+      - name: Authenticate to Salesforce
         run: |
           echo "${{ secrets.SF_SERVER_KEY }}" > server.key
           sfdx auth jwt grant --client-id "${{ secrets.SF_CONSUMER_KEY }}" \
           --jwt-key-file server.key --username "${{ secrets.SF_USERNAME }}" \
-          --setdefaultdevhubusername
+          --setdefaultusername
 
-      - name: Create Scratch Org
-        run: |
-          sfdx force:org:create -f config/project-scratch-def.json -a QA --setdefaultusername -d 7
+  #    - name: List Authenticated Orgs
+  #      run: sfdx force:org:list
+      - name: Check Authenticated Orgs
+        run: sfdx force:org:list
 
-      - name: Deploy to Scratch Org
-        run: |
-          sfdx force:source:push -u QA
-
-      - name: Run Apex Tests
-        run: |
-          sfdx force:apex:test:run --resultformat human --wait 10 -u QA
-
-      - name: Delete Scratch Org (Cleanup)
-        if: always()
-        run: |
-          sfdx force:org:delete -u QA -p
+      - name: Deploy to Salesforce
+        working-directory: MyProject
+        run: sfdx force:source:deploy -p force-app -u "${{ secrets.SF_USERNAME }}" -w 10
